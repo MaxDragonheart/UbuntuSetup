@@ -12,6 +12,5 @@ sudo cp qgis.sources /etc/apt/sources.list.d/
 sudo apt update -y
 sudo apt install -y qgis qgis-plugin-grass
 
-qgis --version
-
 echo "Install QGIS | END"
+qgis --version
