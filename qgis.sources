@@ -1,0 +1,15 @@
+# QGIS source file
+
+# Types: deb deb-src
+# URIs: *repository*
+# Suites: *codename*
+# Architectures: amd64
+# Components: main
+# Signed-By: /etc/apt/keyrings/qgis-archive-keyring.gpg
+
+Types: deb deb-src
+URIs: https://qgis.org/ubuntu-ltr
+Suites: focal
+Architectures: amd64
+Components: main
+Signed-By: /etc/apt/keyrings/qgis-archive-keyring.gpg
