@@ -8,4 +8,4 @@ Execute file: `./filename.sh`
 
 # VisualStudio Code for GitHub
 
-On Windows when you are in the main repository page, you can click on `.` and the IDE starts
+On Windows 11 and Ubuntu 22.04 when you are in the main repository page, you can click on `.` and the IDE starts
