@@ -3,6 +3,9 @@
 echo "Install develop setting up | START"
 sudo apt update && sudo apt upgrade -y
 
+echo "Install base packages"
+sudo apt install -y curl
+
 echo "--> Install Git"
 sudo apt install -y git
 
