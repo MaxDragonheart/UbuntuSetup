@@ -1,4 +1,4 @@
-# Ubuntu20.04setup
+# Ubuntu Setup
 My Ubuntu20.04 programs
 -----
 Make bash file executable: `sudo chmod +x filename.sh`
