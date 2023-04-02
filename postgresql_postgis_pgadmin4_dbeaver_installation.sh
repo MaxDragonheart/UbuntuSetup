@@ -23,3 +23,4 @@ echo "--> Install Dbeaver"
 sudo snap install dbeaver-ce
 
 echo "Install PostgreSQL/PostGIS pgAdmin4 Dbeaver | END"
+echo "Don't forgot to change password of postgres user!"
