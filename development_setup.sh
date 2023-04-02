@@ -18,7 +18,7 @@ pip3 install --upgrade pip
 export PATH="/home/max/.local/bin:$PATH"
 
 echo "--> Install Poetry"
-curl -sSL https://install.python-poetry.org | python3 -
+curl -s https://install.python-poetry.org | python3 -
 export PATH="/home/max/.local/bin:$PATH"
 
 echo "Install develop setting up | END"
