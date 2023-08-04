@@ -24,7 +24,7 @@ Suggestions and improvements are accepted. :+1:
 ## Go! :rocket:
 Make bash file executable: `sudo chmod +x filename.sh`
 
-Execute file: `./filename.sh`
+Execute file: `. ./filename.sh` as metioned [here](https://stackoverflow.com/a/76835503/10012856)
 
 
 ### :collision: *[TIPS!]* VisualStudio Code for GitHub

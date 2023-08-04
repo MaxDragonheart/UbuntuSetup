@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Install develop setting up | START"
+echo "Install development settings | START"
 sudo apt update -y
 sudo apt upgrade -y
 sudo apt autoremove -y
@@ -31,4 +31,4 @@ echo "--> Install Poetry"
 curl -s https://install.python-poetry.org | python3 -
 export PATH="/home/max/.local/bin:$PATH"
 
-echo "Install develop setting up | END"
+echo "Install development settings up | END"
