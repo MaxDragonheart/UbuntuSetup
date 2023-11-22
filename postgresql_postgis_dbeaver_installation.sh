@@ -3,14 +3,20 @@ sudo s#!/bin/bash
 echo "Install PostgreSQL/PostGIS and Dbeaver | START"
 sudo apt update && sudo apt upgrade -y
 
-echo "--> Install PostreSQL"
-sudo apt install -y postgresql postgresql-contrib
+echo "--> Create the file repository configuration"
+sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 
-echo "--> Install PostGIS"
-sudo apt install -y postgis
+echo "--> Import the repository signing key"
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+echo "--> Install PostreSQL 16"
+sudo apt install -y postgresql-16 postgresql-contrib
+
+echo "--> Install PostGIS 3 for PostgreSQL 16"
+sudo apt install -y postgresql-16-postgis-3
 
 echo "--> Create postgres' user password"
-sudo -u postgres psql -c "alter role postgres with encrypted password 'changemesoon';"
+sudo -u postgres psql -c "alter role postgres with encrypted password 'postgres';"
 
 echo "--> Add PostGIS extension to default PostgreSQL DB"
 sudo -u postgres psql -c "create extension postgis;"
