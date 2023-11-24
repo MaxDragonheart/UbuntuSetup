@@ -12,4 +12,7 @@ sudo snap install code --classic
 echo "--> Install Insomnia"
 sudo snap install insomnia
 
+echo "--> Install FileZilla"
+sudo apt install filezilla
+
 echo "Install IDE | END"
