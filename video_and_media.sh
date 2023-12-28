@@ -14,6 +14,11 @@ sudo apt install vlc -y
 echo "--> Install OBS Studio"
 sudo apt install obs-studio -y
 
+echo "--> Install Kdenlive"
+sudo add-apt-repository ppa:kdenlive/kdenlive-stable -y
+sudo apt-get update -y
+sudo apt install kdenlive -y
+
 echo "--> Install GIMP"
 sudo apt install gimp -y
 
