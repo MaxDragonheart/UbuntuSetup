@@ -21,7 +21,7 @@ sudo apt install -y python3-pip python3-venv python3-dev build-essential libssl-
 echo "--> Update pip"
 pip3 install --upgrade pip
 export PATH="/home/max/.local/bin:$PATH"
-pip3 install --upgrade wheel pillow
+pip3 install --upgrade wheel pillow setuptools
 
 echo "--> Install Python's packages for GIS developing"
 sudo apt install -y libpq-dev libproj-dev proj-data proj-bin libgeos-dev
