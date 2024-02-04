@@ -24,6 +24,7 @@ sudo -u postgres psql -c "create extension postgis;"
 echo "--> Install Dbeaver"
 sudo snap install dbeaver-ce
 
+
 echo "Install PostgreSQL/PostGIS and Dbeaver | END"
 
 echo "..."
