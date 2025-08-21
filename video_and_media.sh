@@ -1,28 +1,47 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Install video&media | START"
-sudo apt update && sudo apt upgrade -y
+echo "==> Install video & media | START"
 
-echo "--> Install media codecs"
-sudo apt install ubuntu-restricted-extras -y
+export DEBIAN_FRONTEND=noninteractive
 
-echo "--> Install VLC"
-sudo add-apt-repository ppa:videolan/stable-daily -y
-sudo apt-get update -y
-sudo apt install vlc -y
+sudo apt update
+sudo apt -y full-upgrade
 
-echo "--> Install OBS Studio"
-sudo apt install obs-studio -y
+# -------------------------------
+# Multimedia codecs
+# -------------------------------
+echo "==> Install media codecs (MP3, MP4, etc.)"
+sudo apt -y install ubuntu-restricted-extras
 
-echo "--> Install Kdenlive"
-sudo add-apt-repository ppa:kdenlive/kdenlive-stable -y
-sudo apt-get update -y
-sudo apt install kdenlive -y
+# -------------------------------
+# VLC (repo ufficiale)
+# -------------------------------
+echo "==> Install VLC"
+sudo apt -y install vlc
 
-echo "--> Install GIMP"
-sudo apt install gimp -y
+# -------------------------------
+# OBS Studio (repo ufficiale, già recente su 24.04)
+# -------------------------------
+echo "==> Install OBS Studio"
+sudo apt -y install obs-studio
 
-echo "--> Install Inkscape"
-sudo apt install inkscape -y
+# -------------------------------
+# Kdenlive (repo ufficiale, stabile su 24.04)
+# -------------------------------
+echo "==> Install Kdenlive"
+sudo apt -y install kdenlive
 
-echo "Install video&media | END"
+# -------------------------------
+# GIMP (repo ufficiale)
+# -------------------------------
+echo "==> Install GIMP"
+sudo apt -y install gimp
+
+# -------------------------------
+# Inkscape (repo ufficiale)
+# -------------------------------
+echo "==> Install Inkscape"
+sudo apt -y install inkscape
+
+echo "==> Install video & media | END"
