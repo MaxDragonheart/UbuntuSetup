@@ -1,52 +1,92 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Install development settings | START"
-sudo apt update -y
-sudo apt upgrade -y
-sudo apt autoremove -y
+echo "==> Development setup | START"
 
-echo "Install base packages"
-sudo apt install -y curl
-sudo apt install -y wget
-sudo apt install -y unzip
-sudo apt install -y gettext
+export DEBIAN_FRONTEND=noninteractive
 
-echo "--> Install Git"
-sudo apt install -y git
+# -----------------------------
+# 1) Sistema base
+# -----------------------------
+echo "==> Update base system"
+sudo apt update
+sudo apt -y full-upgrade
+sudo apt -y autoremove
 
-echo "--> Install Python's packages for developing"
+echo "==> Install base packages"
+sudo apt -y install \
+  curl wget unzip gettext ca-certificates gnupg \
+  build-essential pkg-config
+
+echo "==> Git"
+sudo apt -y install git
+
+# -----------------------------
+# 2) Toolchain Python (senza rompere il Python di sistema)
+# -----------------------------
+echo "==> Python toolchain (apt)"
 python3 -V
-sudo apt install -y python3-pip python3-venv python3-dev build-essential libssl-dev libffi-dev binutils
+sudo apt -y install python3-pip python3-venv python3-dev libssl-dev libffi-dev binutils
 
-echo "--> Update pip"
-pip3 install --upgrade pip
-export PATH="/home/max/.local/bin:$PATH"
-pip3 install --upgrade wheel pillow setuptools
+# Assicura ~/.local/bin nel PATH (ora e future shell)
+export PATH="$HOME/.local/bin:$PATH"
+grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.profile" || \
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
 
-echo "--> Install Python's packages for GIS developing"
-sudo apt install -y libpq-dev libproj-dev proj-data proj-bin libgeos-dev
-sudo DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC
-sudo apt install -y tzdata libgdal-dev python3-gdal gdal-bin
+# pipx per strumenti utente (poetry, ruff, pre-commit, ecc.)
+echo "==> pipx (user-level tools)"
+sudo apt -y install pipx
+pipx ensurepath
 
-echo "--> Install Poetry"
-curl -s https://install.python-poetry.org | python3 -
-export PATH="/home/max/.local/bin:$PATH"
+# Poetry via pipx (consigliato su Ubuntu 24.04)
+echo "==> Install Poetry via pipx"
+pipx install poetry
 
-echo "--> Install Docker" 
-# https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
-# Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl gnupg
+# (NOTA) Aggiornare pip/wheel/setuptools SOLO dentro i virtualenv dei progetti:
+#   python3 -m venv .venv && source .venv/bin/activate
+#   pip install -U pip wheel setuptools
+
+# -----------------------------
+# 3) Librerie GIS
+# -----------------------------
+echo "==> GIS libraries (GDAL/PROJ/GEOS/PostgreSQL client headers)"
+sudo apt -y install \
+  libpq-dev libproj-dev proj-data proj-bin libgeos-dev \
+  gdal-bin python3-gdal libgdal-dev
+
+# -----------------------------
+# 4) Docker (repo ufficiale)
+# -----------------------------
+echo "==> Docker (engine, buildx, compose)"
 sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+source /etc/os-release
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu ${VERSION_CODENAME} stable" \
+  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-echo "Install development settings up | END"
+sudo apt update
+sudo apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# avvia ed abilita
+sudo systemctl enable --now docker
+# abilita uso senza sudo (richiede logout/login o reboot)
+sudo usermod -aG docker "$USER"
+
+# -----------------------------
+# 5) Versioni utili a schermo
+# -----------------------------
+echo "==> Versions"
+git --version || true
+python3 -V
+pipx --version || true
+poetry --version || true
+gdalinfo --version || true
+docker --version || true
+docker compose version || true
+
+echo "==> Development setup | END"
+echo "NOTE: esegui logout/login (o reboot) per usare Docker senza sudo (nuovo gruppo 'docker')."
+echo "NOTE: usa 'python3 -m venv .venv && source .venv/bin/activate' nei progetti; aggiorna pip/wheel dentro il venv."
