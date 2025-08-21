@@ -1,33 +1,57 @@
-sudo s#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Install PostgreSQL/PostGIS and Dbeaver | START"
-sudo apt update && sudo apt upgrade -y
+echo "==> Install PostgreSQL/PostGIS and DBeaver | START"
 
-echo "--> Create the file repository configuration"
-sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+export DEBIAN_FRONTEND=noninteractive
 
-echo "--> Import the repository signing key"
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo apt update
+sudo apt -y full-upgrade
+sudo apt -y install wget curl ca-certificates gnupg lsb-release
 
-echo "--> Install PostreSQL 16"
-sudo apt install -y postgresql-16 postgresql-contrib
+# -------------------------------
+# PostgreSQL Global Development Group (PGDG) repository
+# -------------------------------
+echo "==> Configure PostgreSQL APT repository"
 
-echo "--> Install PostGIS 3 for PostgreSQL 16"
-sudo apt install -y postgresql-16-postgis-3
+# keyrings dir
+sudo install -m 0755 -d /etc/apt/keyrings
 
-echo "--> Create postgres' user password"
-sudo -u postgres psql -c "alter role postgres with encrypted password 'postgres';"
+# import key (dearmored)
+wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+  | gpg --dearmor | sudo tee /etc/apt/keyrings/postgres.gpg > /dev/null
+sudo chmod a+r /etc/apt/keyrings/postgres.gpg
 
-echo "--> Add PostGIS extension to default PostgreSQL DB"
-sudo -u postgres psql -c "create extension postgis;"
+# add repo
+CODENAME="$(lsb_release -cs)"
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/postgres.gpg] https://apt.postgresql.org/pub/repos/apt ${CODENAME}-pgdg main" \
+  | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
 
-echo "--> Install Dbeaver"
+sudo apt update
+
+# -------------------------------
+# Install PostgreSQL 16 + contrib + PostGIS 3
+# -------------------------------
+echo "==> Install PostgreSQL 16 + PostGIS 3"
+sudo apt -y install postgresql-16 postgresql-contrib postgresql-16-postgis-3
+
+# -------------------------------
+# Configure postgres user
+# -------------------------------
+echo "==> Configure postgres user password"
+sudo -u postgres psql -c "ALTER ROLE postgres WITH ENCRYPTED PASSWORD 'postgres';"
+
+echo "==> Add PostGIS extension to default 'postgres' database"
+sudo -u postgres psql -d postgres -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+
+# -------------------------------
+# DBeaver (snap)
+# -------------------------------
+echo "==> Install DBeaver CE"
 sudo snap install dbeaver-ce
 
+echo "==> Install PostgreSQL/PostGIS and DBeaver | END"
 
-echo "Install PostgreSQL/PostGIS and Dbeaver | END"
-
-echo "..."
-echo "Don't forgot to change password of postgres user!"
-echo "Don't forgot to change password of postgres user!!"
-echo "Don't forgot to change password of postgres user!!!"
+echo "---------------------------------------------------"
+echo "!! Remember to change the password of 'postgres' user !!"
+echo "---------------------------------------------------"
