@@ -56,13 +56,31 @@ Skipping the full upgrade can reduce surprise during testing, but package instal
 
 ## PostgreSQL Password
 
-`db_stuffs_installation.sh` no longer sets the `postgres` password to a hard-coded value. Run it interactively and enter the password when prompted, or set it explicitly:
+`db_stuffs_installation.sh` installs PostgreSQL/PostGIS for one explicit PostgreSQL major version. The default is PostgreSQL 16:
+
+```bash
+POSTGRES_MAJOR=16 ./db_stuffs_installation.sh
+```
+
+The script no longer sets the `postgres` password to a hard-coded value. Run it interactively and enter the password when prompted, or set it explicitly:
 
 ```bash
 POSTGRES_PASSWORD='change-me' ./db_stuffs_installation.sh
 ```
 
+For validation environments where Snap/DBeaver should be skipped:
+
+```bash
+INSTALL_DBEAVER=0 POSTGRES_PASSWORD='change-me' ./db_stuffs_installation.sh
+```
+
 Use a real private password on production machines.
+
+When `INSTALL_DBEAVER=1`, DBeaver CE is installed as a classic Snap because the published Snap package requires classic confinement:
+
+```bash
+sudo snap install dbeaver-ce --classic
+```
 
 ## VirtualBox Extension Pack
 

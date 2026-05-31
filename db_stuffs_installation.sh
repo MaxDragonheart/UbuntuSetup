@@ -6,6 +6,9 @@ echo "==> Install PostgreSQL/PostGIS and DBeaver | START"
 export DEBIAN_FRONTEND=noninteractive
 RUN_FULL_UPGRADE="${RUN_FULL_UPGRADE:-1}"
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-}"
+POSTGRES_MAJOR="${POSTGRES_MAJOR:-16}"
+POSTGRES_CLUSTER="${POSTGRES_CLUSTER:-main}"
+INSTALL_DBEAVER="${INSTALL_DBEAVER:-1}"
 
 run_full_upgrade() {
   if [[ "${RUN_FULL_UPGRADE}" == "1" ]]; then
@@ -39,6 +42,37 @@ escape_sql_literal() {
   printf "%s" "$1" | sed "s/'/''/g"
 }
 
+validate_postgres_major() {
+  if [[ ! "${POSTGRES_MAJOR}" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: POSTGRES_MAJOR must be a numeric PostgreSQL major version." >&2
+    exit 1
+  fi
+}
+
+cluster_status() {
+  pg_lsclusters -h \
+    | awk -v version="${POSTGRES_MAJOR}" -v cluster="${POSTGRES_CLUSTER}" \
+        '$1 == version && $2 == cluster {print $4; found = 1} END {if (!found) exit 1}'
+}
+
+ensure_postgres_cluster() {
+  local status
+
+  if ! status="$(cluster_status)"; then
+    echo "==> Create PostgreSQL ${POSTGRES_MAJOR}/${POSTGRES_CLUSTER} cluster"
+    sudo pg_createcluster "${POSTGRES_MAJOR}" "${POSTGRES_CLUSTER}" --start
+    return
+  fi
+
+  if [[ "${status}" != "online" ]]; then
+    echo "==> Start PostgreSQL ${POSTGRES_MAJOR}/${POSTGRES_CLUSTER} cluster"
+    sudo pg_ctlcluster "${POSTGRES_MAJOR}" "${POSTGRES_CLUSTER}" start
+  else
+    echo "==> PostgreSQL ${POSTGRES_MAJOR}/${POSTGRES_CLUSTER} cluster is already online"
+  fi
+}
+
+validate_postgres_major
 sudo apt update
 run_full_upgrade
 sudo apt -y install wget curl ca-certificates gnupg lsb-release
@@ -64,10 +98,16 @@ echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/postgres.gpg] https://apt.post
 sudo apt update
 
 # -------------------------------
-# Install PostgreSQL 16 + contrib + PostGIS 3
+# Install PostgreSQL + PostGIS 3 for one explicit major version
 # -------------------------------
-echo "==> Install PostgreSQL 16 + PostGIS 3"
-sudo apt -y install postgresql-16 postgresql-contrib postgresql-16-postgis-3
+echo "==> Install PostgreSQL ${POSTGRES_MAJOR} + PostGIS 3"
+sudo apt -y install \
+  "postgresql-${POSTGRES_MAJOR}" \
+  "postgresql-client-${POSTGRES_MAJOR}" \
+  "postgresql-${POSTGRES_MAJOR}-postgis-3"
+
+ensure_postgres_cluster
+pg_lsclusters
 
 # -------------------------------
 # Configure postgres user
@@ -75,22 +115,34 @@ sudo apt -y install postgresql-16 postgresql-contrib postgresql-16-postgis-3
 echo "==> Configure postgres user password"
 require_postgres_password
 POSTGRES_PASSWORD_SQL="$(escape_sql_literal "${POSTGRES_PASSWORD}")"
-sudo -u postgres psql --set=ON_ERROR_STOP=1 <<SQL
+sudo -u postgres psql \
+  --cluster "${POSTGRES_MAJOR}/${POSTGRES_CLUSTER}" \
+  --dbname postgres \
+  --set=ON_ERROR_STOP=1 <<SQL
 ALTER ROLE postgres WITH ENCRYPTED PASSWORD '${POSTGRES_PASSWORD_SQL}';
 SQL
 unset POSTGRES_PASSWORD_SQL
 
-echo "==> Add PostGIS extension to default 'postgres' database"
-sudo -u postgres psql -d postgres -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+echo "==> Add PostGIS extension to PostgreSQL ${POSTGRES_MAJOR}/${POSTGRES_CLUSTER} database 'postgres'"
+sudo -u postgres psql \
+  --cluster "${POSTGRES_MAJOR}/${POSTGRES_CLUSTER}" \
+  --dbname postgres \
+  --set=ON_ERROR_STOP=1 \
+  --command "CREATE EXTENSION IF NOT EXISTS postgis;"
 
 # -------------------------------
 # DBeaver (snap)
 # -------------------------------
-echo "==> Install DBeaver CE"
-sudo snap install dbeaver-ce
+if [[ "${INSTALL_DBEAVER}" == "1" ]]; then
+  echo "==> Install DBeaver CE (classic Snap)"
+  sudo snap install dbeaver-ce --classic
+else
+  echo "==> Skip DBeaver CE installation (INSTALL_DBEAVER=${INSTALL_DBEAVER})"
+fi
 
 echo "==> Install PostgreSQL/PostGIS and DBeaver | END"
 
 echo "---------------------------------------------------"
 echo "The PostgreSQL 'postgres' password was set from POSTGRES_PASSWORD or from the interactive prompt."
+echo "PostgreSQL target cluster: ${POSTGRES_MAJOR}/${POSTGRES_CLUSTER}"
 echo "---------------------------------------------------"
