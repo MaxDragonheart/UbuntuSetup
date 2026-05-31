@@ -14,7 +14,6 @@ The scripts are maintained for Ubuntu workstation setup and can modify packages,
 - `virtualbox_installation.sh`: Oracle VirtualBox and optional Extension Pack.
 - `estrai_zip.sh`: extracts `.zip` files in a selected folder.
 - `update_upgrade.sh`: runs `apt update`, `apt upgrade`, and `apt autoremove`.
-- `parallelization_readiness_check.sh`: read-only CPU, Python parallelism, GPU runtime, CUDA, and optional Python package diagnostic.
 - `qgis_installation.sh`: QGIS installer. Its release-selection flow is tracked separately and is intentionally not changed by the non-QGIS maintenance pass.
 
 ## Run A Script
