@@ -4,9 +4,19 @@ set -euo pipefail
 echo "==> Install IDE | START"
 
 export DEBIAN_FRONTEND=noninteractive
+RUN_FULL_UPGRADE="${RUN_FULL_UPGRADE:-1}"
+
+run_full_upgrade() {
+  if [[ "${RUN_FULL_UPGRADE}" == "1" ]]; then
+    echo "==> Full system upgrade (set RUN_FULL_UPGRADE=0 to skip)"
+    sudo apt -y full-upgrade
+  else
+    echo "==> Skip full system upgrade (RUN_FULL_UPGRADE=${RUN_FULL_UPGRADE})"
+  fi
+}
 
 sudo apt update
-sudo apt -y full-upgrade
+run_full_upgrade
 sudo apt -y install ca-certificates curl gnupg
 
 # Assicurati che snapd sia attivo (per PyCharm/Insomnia)

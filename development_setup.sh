@@ -4,13 +4,35 @@ set -euo pipefail
 echo "==> Development setup | START"
 
 export DEBIAN_FRONTEND=noninteractive
+RUN_FULL_UPGRADE="${RUN_FULL_UPGRADE:-1}"
+
+run_full_upgrade() {
+  if [[ "${RUN_FULL_UPGRADE}" == "1" ]]; then
+    echo "==> Full system upgrade (set RUN_FULL_UPGRADE=0 to skip)"
+    sudo apt -y full-upgrade
+  else
+    echo "==> Skip full system upgrade (RUN_FULL_UPGRADE=${RUN_FULL_UPGRADE})"
+  fi
+}
+
+install_or_upgrade_poetry() {
+  if pipx list --short 2>/dev/null | grep -q '^poetry '; then
+    echo "==> Poetry already installed by pipx, upgrading"
+    pipx upgrade poetry
+  elif command -v poetry >/dev/null 2>&1; then
+    echo "==> Poetry already available at $(command -v poetry), skipping pipx install"
+  else
+    echo "==> Install Poetry via pipx"
+    pipx install poetry
+  fi
+}
 
 # -----------------------------
 # 1) Sistema base
 # -----------------------------
 echo "==> Update base system"
 sudo apt update
-sudo apt -y full-upgrade
+run_full_upgrade
 sudo apt -y autoremove
 
 echo "==> Install base packages"
@@ -39,8 +61,7 @@ sudo apt -y install pipx
 pipx ensurepath
 
 # Poetry via pipx (consigliato su Ubuntu 24.04)
-echo "==> Install Poetry via pipx"
-pipx install poetry
+install_or_upgrade_poetry
 
 # (NOTA) Aggiornare pip/wheel/setuptools SOLO dentro i virtualenv dei progetti:
 #   python3 -m venv .venv && source .venv/bin/activate

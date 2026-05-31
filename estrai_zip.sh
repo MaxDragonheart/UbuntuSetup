@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
+set -euo pipefail
+shopt -s nullglob
 
 # Funzione per stampare la barra di avanzamento
 print_progress() {

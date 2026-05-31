@@ -3,9 +3,21 @@ set -euo pipefail
 
 echo "--> Google Chrome installation | START"
 
+export DEBIAN_FRONTEND=noninteractive
+RUN_FULL_UPGRADE="${RUN_FULL_UPGRADE:-1}"
+
+run_full_upgrade() {
+  if [[ "${RUN_FULL_UPGRADE}" == "1" ]]; then
+    echo "==> Full system upgrade (set RUN_FULL_UPGRADE=0 to skip)"
+    sudo apt -y full-upgrade
+  else
+    echo "==> Skip full system upgrade (RUN_FULL_UPGRADE=${RUN_FULL_UPGRADE})"
+  fi
+}
+
 # 1) Aggiorna base (apt-transport-https non serve più su Ubuntu recenti)
 sudo apt update
-sudo apt -y full-upgrade
+run_full_upgrade
 sudo apt -y install curl ca-certificates gnupg
 
 # 2) Prepara la cartella dei keyring se non esiste

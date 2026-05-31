@@ -1,10 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 echo "Update ...."
-apt update -y
+sudo apt update -y
 echo "Done!"
 echo "Upgrade ..."
-apt upgrade -y
+sudo apt upgrade -y
 echo "Done!"
 echo "Autoremove ..."
-apt autoremove -y
+sudo apt autoremove -y
 echo "Done!"
 echo "Process completed!"
