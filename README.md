@@ -78,18 +78,6 @@ INSTALL_VIRTUALBOX_EXTPACK=1 ./virtualbox_installation.sh
 
 After VirtualBox setup, log out and log back in, or reboot, so the `vboxusers` group change takes effect.
 
-## Parallelization and GPU Readiness
-
-Use the read-only readiness check before relying on this workstation for parallel Python workloads or GPU acceleration:
-
-```bash
-bash parallelization_readiness_check.sh
-```
-
-The script checks CPU count, memory, disk space, Python thread/process execution, optional Python packages, NVIDIA device visibility, `nvidia-smi`, `/dev/dri`, `nvcc`, and Docker availability. It does not install packages, call `sudo`, edit files, or change services.
-
-CPU parallelism and GPU acceleration are separate concerns. Many network-bound or filesystem-bound workflows benefit from bounded CPU thread/process parallelism even when GPU support is unavailable. GPU acceleration also needs a working driver runtime, visible device nodes, CUDA or another supported runtime, and project-specific Python libraries.
-
 ## Validation
 
 Before changing scripts, run:
