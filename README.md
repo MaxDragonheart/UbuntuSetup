@@ -14,7 +14,8 @@ The scripts are maintained for Ubuntu workstation setup and can modify packages,
 - `virtualbox_installation.sh`: Oracle VirtualBox and optional Extension Pack.
 - `estrai_zip.sh`: extracts `.zip` files in a selected folder.
 - `update_upgrade.sh`: runs `apt update`, `apt upgrade`, and `apt autoremove`.
-- `qgis_installation.sh`: QGIS installer. Its release-selection flow is tracked separately and is intentionally not changed by the non-QGIS maintenance pass.
+- `qgis_installation.sh`: QGIS installer with a selectable `Latest Release` or `Long Term Release` repository flow.
+- `nvidia_gpu_runtime_setup.sh`: mode-based NVIDIA driver/runtime diagnostics, repair, CUDA guidance, and optional Docker GPU setup.
 
 ## Run A Script
 
@@ -53,6 +54,79 @@ RUN_FULL_UPGRADE=0 ./development_setup.sh
 ```
 
 Skipping the full upgrade can reduce surprise during testing, but package installation may fail on outdated systems.
+
+## NVIDIA GPU Runtime
+
+`nvidia_gpu_runtime_setup.sh` is intentionally mode-based. Running it without a mode does not install drivers, CUDA, or Docker GPU support.
+
+Safe order:
+
+```bash
+bash ../artifacts/PRP-003_parallelization_readiness_check.sh
+./nvidia_gpu_runtime_setup.sh diagnose
+./nvidia_gpu_runtime_setup.sh list-drivers
+RUN_FULL_UPGRADE=0 ./nvidia_gpu_runtime_setup.sh install-driver
+sudo reboot
+./nvidia_gpu_runtime_setup.sh verify-driver
+./nvidia_gpu_runtime_setup.sh print-cuda-guidance
+```
+
+Use Ubuntu-supported driver tooling by default:
+
+```bash
+./nvidia_gpu_runtime_setup.sh install-driver
+```
+
+To install a specific Ubuntu driver branch shown by `list-drivers`:
+
+```bash
+./nvidia_gpu_runtime_setup.sh install-driver 550
+NVIDIA_DRIVER_PROFILE=gpgpu ./nvidia_gpu_runtime_setup.sh install-driver 550-server
+```
+
+Reboot after driver install or repair before trusting `nvidia-smi`, `/dev/nvidia*`, or `/dev/dri`. Secure Boot can block unsigned NVIDIA kernel modules; Ubuntu's `ubuntu-drivers` path prefers pre-built signed modules when available.
+
+CUDA Toolkit is separate from the NVIDIA driver runtime. Install CUDA Toolkit only when a project needs development tools such as `nvcc`, CUDA headers, or native CUDA compilation. Python GPU libraries such as `torch`, `cupy`, `numba`, `tensorflow`, and `dask` belong in the relevant project virtual environment, not in the global Ubuntu setup.
+
+Docker GPU workloads are optional and require a working host driver first:
+
+```bash
+./nvidia_gpu_runtime_setup.sh install-container-toolkit
+./nvidia_gpu_runtime_setup.sh verify-docker-gpu
+```
+
+`verify-docker-gpu` runs a temporary `docker run --rm --gpus all ... nvidia-smi` check. If it pulls the configured test image only for that check, the script removes it afterward unless `KEEP_DOCKER_GPU_TEST_IMAGE=1` is set.
+
+## QGIS Release Choice
+
+`qgis_installation.sh` follows the official QGIS Debian/Ubuntu installation guide:
+
+```text
+https://qgis.org/resources/installation-guide/#debian--ubuntu
+```
+
+Interactive mode asks which QGIS release line to install:
+
+- `Latest Release`: uses `https://qgis.org/ubuntu`.
+- `Long Term Release`: uses `https://qgis.org/ubuntu-ltr`.
+
+For noninteractive use, pass the release label as an argument:
+
+```bash
+./qgis_installation.sh "Latest Release"
+./qgis_installation.sh "Long Term Release"
+```
+
+or set `QGIS_RELEASE`:
+
+```bash
+QGIS_RELEASE="Latest Release" ./qgis_installation.sh
+QGIS_RELEASE="Long Term Release" ./qgis_installation.sh
+```
+
+The script detects the Ubuntu suite with `lsb_release -cs`. On Ubuntu derivatives, it falls back to `UBUNTU_CODENAME` from `/etc/os-release` when available. It writes `/etc/apt/sources.list.d/qgis.sources` with the detected suite and the selected QGIS repository.
+
+The script installs `qgis qgis-plugin-grass python3-qgis`. `python3-qgis` is kept to preserve the previous workstation behavior and provide QGIS Python bindings used by the Python console and plugins. If QGIS or GRASS packages are already installed, the script warns before continuing; it does not remove packages automatically.
 
 ## PostgreSQL Password
 
